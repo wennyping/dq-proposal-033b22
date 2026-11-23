@@ -20,7 +20,8 @@ body{font-family:"Noto Sans TC",sans-serif;background:var(--bg);color:var(--ink)
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 
 /* ---------- layout ---------- */
-.stage{display:flex;gap:40px;justify-content:center;align-items:flex-start;padding:32px 16px 48px;max-width:1180px;margin:0 auto}
+.stage{display:flex;justify-content:center;align-items:center;min-height:100vh;padding:32px 16px}
+.switch{font-size:12px;color:var(--ocean);background:var(--ocean-l);border-radius:14px;padding:5px 10px;font-weight:500}
 .side{flex:1;max-width:460px;position:sticky;top:24px}
 .side h1{font-size:22px;line-height:1.4;margin-bottom:6px}
 .side .sub{color:var(--ink-2);font-size:14px;margin-bottom:20px;line-height:1.7}
@@ -182,15 +183,9 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 .ok-big .c{width:64px;height:64px;border-radius:50%;background:var(--ok-l);color:var(--ok);display:grid;place-items:center;font-size:30px;margin:0 auto 12px}
 .demo-tag{font-size:11px;color:var(--ink-3);text-align:center;margin-top:16px}
 
-@media (max-width:900px){
-  .stage{flex-direction:column;align-items:center;gap:24px;padding:20px 16px 40px}
-  .side{position:static;max-width:390px;width:100%}
-}
 @media (max-width:430px){
-  .stage{padding:0 0 32px}
+  .stage{padding:0;min-height:0;display:block}
   .phone{width:100%;height:100svh;border-radius:0;box-shadow:none}
-  .side{padding:0 16px}
-  .side .intro{padding-top:20px}
 }
 </style>
 </head>
@@ -208,18 +203,6 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
     <div class="toast" id="toast"></div>
   </div>
 
-  <aside class="side">
-    <div class="intro">
-      <h1>Hi Manta 學員系統｜優化版 Demo</h1>
-      <p class="sub">在左邊手機畫面直接點點看。右側同步說明每個畫面「原本怎麼做、優化後怎麼做」。畫面中的人名、場次與金額皆為示意資料。</p>
-      <div class="mode" id="mode">
-        <button class="on" data-mode="student">學員視角</button>
-        <button data-mode="coach">教練視角</button>
-      </div>
-    </div>
-    <div class="note" id="note"></div>
-    <p class="legend">灰色刪除線＝現行版本的做法　｜　黑字＝優化後的做法</p>
-  </aside>
 </div>
 
 <script>
@@ -266,47 +249,6 @@ const BADGES=[
   {em:'🏆',n:'繡花針',got:false,auto:true,prog:'年度團練 9 次'},
 ];
 
-/* ================= notes (right panel) ================= */
-const NOTES={
-  home:{t:'首頁',items:[
-    ['底部導覽列塞 12 個項目，手機一次只看得到 5 個','導覽列收斂為 <b>5 個主要分頁</b>，揪團、裝備、水攝、排行榜收進「我的」'],
-    ['首頁約 6 個螢幕長，什麼都放','首頁只回答兩件事：<b>我下一步要做什麼、我接下來有什麼行程</b>'],
-    ['徽章積分、經驗值兩套分數並存','合併成 <b>一套「海洋值」</b>，等級、排行榜都用同一個數字'],
-    ['正式環境出現「Edit with Base44」按鈕、過期的上線跑馬燈','上線前清掉開發痕跡與測試資料，跑馬燈改成可設定到期日的公告'],
-  ]},
-  book:{t:'團練預約',items:[
-    ['所有預約人工審核，24 小時處理一次，急件請到 LINE 找教練','<b>證照已認證＋還有名額＝即時確認</b>，只有例外才進教練的審核中心'],
-    ['額滿就只能放棄','額滿場次可 <b>一鍵候補</b>，有人取消時自動遞補並 LINE 通知'],
-    ['確認信走 Gmail，曾撞到每日寄送上限','預約結果、行前一天提醒改用 <b>LINE 官方帳號推播</b>'],
-    ['取消只要填原因，沒有規則','明確顯示取消期限（例：前 24 小時），放鳥次數記錄在學員資料'],
-  ]},
-  task:{t:'任務與徽章',items:[
-    ['「今天試試看能憋氣多久」，沒有任何安全提醒','任務頁置頂 <b>安全提醒</b>：閉氣練習只在陸上進行，下水一律遵守潛伴制度'],
-    ['100 枚徽章幾乎都要學員拍照、教練審核','系統已有的資料（團練次數、潛旅紀錄、換教練）<b>自動發放</b>，只有生態照、表演類才需證明'],
-    ['每日練習 +20，買一台相機 +10,000，等於練 500 天','分數改以 <b>練習與出席為主</b>；裝備改成「在店內購買自動入帳」，遊戲化直接連到營收'],
-  ]},
-  trip:{t:'潛旅',items:[
-    ['報名 5 步驟：私訊 IG 問名額、填外部表單、匯款、等幾天、被拉進群組','<b>App 內 3 步完成</b>：選方案、填資料、回報匯款末五碼，名額即時扣除'],
-    ['行程詳情只連到 Notion 頁面','重點資訊（費用、包含項目、適合等級）直接顯示，Notion 保留給完整行程表'],
-    ['狀態沒人更新：7 月的團還顯示「未成團」','依日期與人數 <b>自動切換狀態</b>（招募中、已成團、已滿團、已圓滿落幕）'],
-    ['參加完潛旅還要自己上傳證明領徽章','行程結束 <b>自動發放潛旅徽章</b>'],
-  ]},
-  me:{t:'我的',items:[
-    ['群組暱稱要手動照「證照/日期/暱稱」格式填，改暱稱還要審核','暱稱前綴 <b>由證照資料自動產生</b>，學員只填自己的暱稱'],
-    ['揪團、裝備、水攝、排行榜都佔一個主選單','收進「我的」，保留功能但不搶主畫面'],
-    ['裝備選購只寫 LINE ID，店家不知道誰有興趣','加上「我有興趣」按鈕，名單直接進後台，店家可以主動聯繫'],
-  ]},
-  queue:{t:'教練｜審核中心',items:[
-    ['7 條審核分散在不同頁面：證照、暱稱、預約、徽章、任務照片、水攝、揪團','<b>一個收件匣</b> 集中所有待審項目，可依類型篩選，一鍵核准或退回'],
-    ['每一筆預約都要人工點確認','符合規則的預約 <b>自動通過並留下紀錄</b>，教練只處理例外'],
-    ['退回原因要另外私訊說明','退回時選常用理由，系統自動 LINE 通知學員'],
-  ]},
-  dash:{t:'教練｜經營儀表板',items:[
-    ['後台只有「資料匯出」，要看數字得自己整理 Excel','即時看 <b>出席率、回訪率、潛旅成團進度</b>'],
-    ['不知道哪些學員很久沒來','自動列出 <b>60 天沒下水的學員</b>，一鍵發 LINE 邀請回來團練'],
-    ['學員升級沒有人追','依證照與上課日期提示 <b>可推薦的進階課程</b>（例：AIDA2 滿 3 個月推 AIDA3）'],
-  ]},
-};
 
 /* ================= icons ================= */
 const I={
@@ -342,17 +284,12 @@ function render(){
   tb.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S.tripBooking=null;render();$('#content').scrollTop=0});
   const titles={home:'',book:'團練預約',task:'任務與徽章',trip:'潛旅',me:'我的',queue:'審核中心',dash:'經營儀表板'};
   $('#appbar').innerHTML=S.tab==='home'
-    ?`<div class="brand"><div class="logo">🐟</div>Hi Manta</div><button class="bell" onclick="toast('明天 14:00 墾丁小灣團練，記得帶防寒衣與配重。')">${I.bell}<span class="dot"></span></button>`
-    :`<div class="title">${titles[S.tab]}</div>${S.mode==='coach'?'<span class="pill p-sun">教練</span>':''}`;
+    ?`<div class="brand"><div class="logo">🐟</div>Hi Manta</div><div style="display:flex;align-items:center;gap:4px">${`<button class="switch" onclick="setMode('${S.mode==='student'?'coach':'student'}')">${S.mode==='student'?'切換教練視角':'切換學員視角'}</button>`}<button class="bell" onclick="toast('明天 14:00 墾丁小灣團練，記得帶防寒衣與配重。')">${I.bell}<span class="dot"></span></button></div>`
+    :`<div class="title">${titles[S.tab]}</div>${`<button class="switch" onclick="setMode('${S.mode==='student'?'coach':'student'}')">${S.mode==='student'?'切換教練視角':'切換學員視角'}</button>`}`;
   $('#content').innerHTML=VIEWS[S.tab]();
   bind();
-  renderNote();
 }
 
-function renderNote(){
-  const n=NOTES[S.tab];
-  $('#note').innerHTML=`<h2>${n.t}<span class="tag">優化重點 ${n.items.length}</span></h2>`+n.items.map(([b,a])=>`<div class="pair"><div class="before">${b}</div><div class="after">→ ${a}</div></div>`).join('');
-}
 
 const VIEWS={
 home(){
@@ -604,10 +541,7 @@ function gearSheet(){
   $('#sheet').querySelectorAll('[data-int]').forEach(b=>b.onclick=()=>{b.outerHTML='<span class="pill p-ok">已通知店家</span>';toast('店家已收到你的詢問，會透過 LINE 與你聯繫。')});
 }
 
-document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('#mode button').forEach(x=>x.classList.toggle('on',x===b));
-  S.mode=b.dataset.mode;S.tab=TABS[S.mode][0][0];closeSheet();render();$('#content').scrollTop=0;
-});
+function setMode(m){S.mode=m;S.tab=TABS[m][0][0];S.tripBooking=null;closeSheet();render();$('#content').scrollTop=0}
 
 render();
 </script>
