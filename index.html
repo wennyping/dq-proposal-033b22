@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Hi Manta 優化版 Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ocean:#2f6fae; --ocean-d:#1f4f80; --ocean-l:#e8f1fa; --sea:#3fa7a3; --sea-l:#e3f4f2;
+  --coral:#f0775a; --coral-l:#fdeee9; --sun:#f2b544; --sun-l:#fdf4e1;
+  --ink:#24323f; --ink-2:#5b6b7a; --ink-3:#93a1ae; --line:#e3e9ef; --bg:#f4f7fa; --card:#fff;
+  --ok:#2e9e6a; --ok-l:#e5f5ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC",sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.num{font-family:Montserrat,sans-serif}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+
+/* ---------- layout ---------- */
+.stage{display:flex;gap:40px;justify-content:center;align-items:flex-start;padding:32px 16px 48px;max-width:1180px;margin:0 auto}
+.side{flex:1;max-width:460px;position:sticky;top:24px}
+.side h1{font-size:22px;line-height:1.4;margin-bottom:6px}
+.side .sub{color:var(--ink-2);font-size:14px;margin-bottom:20px;line-height:1.7}
+.mode{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:18px}
+.mode button{padding:7px 14px;border-radius:8px;font-size:14px;color:var(--ink-2)}
+.mode button.on{background:var(--ocean);color:#fff}
+.note{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.note h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.note h2 .tag{font-size:12px;background:var(--ocean-l);color:var(--ocean);padding:2px 8px;border-radius:6px;font-weight:500}
+.pair{display:grid;grid-template-columns:1fr;gap:6px;padding:12px 0;border-top:1px dashed var(--line)}
+.pair:first-of-type{border-top:0;padding-top:0}
+.pair .before{font-size:13px;color:var(--ink-3);text-decoration:line-through;text-decoration-color:#c9d2da}
+.pair .after{font-size:14px;line-height:1.65}
+.pair .after b{color:var(--ocean-d)}
+.legend{font-size:12px;color:var(--ink-3);margin-top:14px;line-height:1.7}
+
+/* ---------- phone ---------- */
+.phone{width:390px;height:800px;background:#fff;border-radius:44px;box-shadow:0 20px 50px rgba(31,79,128,.16),0 0 0 10px #1c2733;position:relative;overflow:hidden;flex-shrink:0}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.statusbar{height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:13px;font-weight:600;background:#fff;flex-shrink:0}
+.appbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#fff;border-bottom:1px solid var(--line);flex-shrink:0}
+.appbar .brand{display:flex;align-items:center;gap:8px;font-weight:700}
+.logo{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--ocean),var(--sea));display:grid;place-items:center;color:#fff;font-size:15px}
+.appbar .title{font-size:17px;font-weight:700}
+.bell{position:relative;width:34px;height:34px;display:grid;place-items:center;border-radius:50%}
+.bell .dot{position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--coral);border:2px solid #fff}
+.content{flex:1;overflow-y:auto;padding:16px 16px 24px}
+.content::-webkit-scrollbar{width:0}
+.tabbar{height:72px;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--line);padding-bottom:12px;flex-shrink:0}
+.tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--ink-3)}
+.tabbar button.on{color:var(--ocean)}
+.tabbar svg{width:23px;height:23px}
+.tabbar .badge{position:absolute;margin:-18px 0 0 22px;background:var(--coral);color:#fff;font-size:10px;border-radius:9px;padding:0 5px;line-height:16px}
+
+/* ---------- components ---------- */
+.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--line)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:18px 2px 10px}
+.sec h3{font-size:16px}
+.sec a{font-size:13px;color:var(--ocean);cursor:pointer}
+.hero{background:linear-gradient(135deg,var(--ocean) 0%,var(--sea) 100%);color:#fff;border-radius:18px;padding:18px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.12);filter:blur(10px)}
+.hero .row{display:flex;align-items:center;gap:12px}
+.avatar{width:48px;height:48px;border-radius:50%;background:#ffd9c9;display:grid;place-items:center;font-size:22px;border:2px solid rgba(255,255,255,.7);flex-shrink:0}
+.hero .hi{font-size:13px;opacity:.85}
+.hero .name{font-size:19px;font-weight:700}
+.lv{display:flex;justify-content:space-between;font-size:12px;margin:16px 0 6px;opacity:.95}
+.bar{height:8px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);border-radius:6px}
+.bar.dark{background:var(--line)}
+.bar.dark i{background:var(--sea)}
+.next{display:flex;gap:12px;align-items:center;background:var(--sun-l);border:1px solid #f5dfae;border-radius:14px;padding:14px;margin-top:12px}
+.next .ic{width:40px;height:40px;border-radius:12px;background:#fff;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.next .t{font-weight:700;font-size:14px}
+.next .d{font-size:12px;color:var(--ink-2);margin-top:2px}
+.btn{background:var(--ocean);color:#fff;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.sm{padding:7px 12px;font-size:13px}
+.btn.ghost{background:var(--ocean-l);color:var(--ocean)}
+.btn.coral{background:var(--coral)}
+.btn.ok{background:var(--ok)}
+.btn.block{width:100%;padding:13px}
+.btn:disabled{background:var(--line);color:var(--ink-3);cursor:not-allowed}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.chips::-webkit-scrollbar{height:0}
+.chip{padding:6px 12px;border-radius:20px;background:#fff;border:1px solid var(--line);font-size:13px;white-space:nowrap;color:var(--ink-2)}
+.chip.on{background:var(--ocean);border-color:var(--ocean);color:#fff}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:500}
+.p-ok{background:var(--ok-l);color:var(--ok)}
+.p-ocean{background:var(--ocean-l);color:var(--ocean)}
+.p-coral{background:var(--coral-l);color:#c9553a}
+.p-sun{background:var(--sun-l);color:#a87410}
+.p-gray{background:#eef1f4;color:var(--ink-2)}
+.p-sea{background:var(--sea-l);color:#26807c}
+.sess{display:flex;gap:12px}
+.date{width:52px;flex-shrink:0;text-align:center;background:var(--ocean-l);border-radius:12px;padding:8px 0;color:var(--ocean-d)}
+.date .m{font-size:11px}
+.date .d{font-size:22px;font-weight:700;line-height:1.1}
+.date .w{font-size:11px}
+.sess .info{flex:1;min-width:0}
+.sess .nm{font-weight:700;font-size:15px}
+.meta{font-size:12px;color:var(--ink-2);margin-top:3px;line-height:1.6}
+.seats{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--ink-2)}
+.seats .bar{flex:1;height:6px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.trip{padding:0;overflow:hidden}
+.trip .cover{height:118px;display:flex;align-items:flex-end;padding:12px;color:#fff;font-size:12px;position:relative}
+.trip .cover .pill{background:rgba(255,255,255,.92)}
+.trip .body{padding:14px 16px}
+.trip .tt{font-weight:700;font-size:15px;line-height:1.45}
+.alert{display:flex;gap:10px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.6;margin-bottom:12px}
+.alert.safe{background:var(--coral-l);color:#8f3b26;border:1px solid #f7cfc3}
+.alert.info{background:var(--ocean-l);color:var(--ocean-d)}
+.task{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.task:first-child{border-top:0;padding-top:0}
+.task .em{width:40px;height:40px;border-radius:12px;background:var(--bg);display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.task .tn{font-weight:500;font-size:14px}
+.task .ts{font-size:12px;color:var(--ink-2);margin-top:2px}
+.task .r{margin-left:auto;text-align:right;flex-shrink:0}
+.done-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:transparent;font-weight:700}
+.done-btn.on{background:var(--sea);border-color:var(--sea);color:#fff}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.bdg{text-align:center;font-size:11px;color:var(--ink-2)}
+.bdg .ico{width:56px;height:56px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:var(--bg);border:2px dashed var(--line)}
+.bdg.got .ico{background:linear-gradient(135deg,var(--sun-l),#fff);border:2px solid var(--sun)}
+.list-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line);font-size:14px;cursor:pointer}
+.list-row:first-child{border-top:0}
+.list-row .em{font-size:18px;width:26px;text-align:center}
+.list-row .chev{margin-left:auto;color:var(--ink-3)}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.stat .v{font-size:22px;font-weight:700;color:var(--ocean-d)}
+.stat .l{font-size:11px;color:var(--ink-2);margin-top:2px}
+.q-item{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+.q-item:first-child{border-top:0;padding-top:0}
+.q-thumb{width:52px;height:52px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;font-size:24px;background:var(--bg)}
+.q-actions{display:flex;gap:6px;margin-top:8px}
+.auto-log{font-size:12px;color:var(--ink-2);line-height:1.9}
+.auto-log b{color:var(--ok)}
+.kpi-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:13px}
+.kpi-row:first-child{border-top:0}
+.mini-bars{display:flex;align-items:flex-end;gap:6px;height:70px;margin-top:10px}
+.mini-bars i{flex:1;background:var(--ocean-l);border-radius:4px 4px 0 0;position:relative}
+.mini-bars i.hi{background:var(--ocean)}
+.mini-lbl{display:flex;gap:6px;font-size:10px;color:var(--ink-3);margin-top:4px}
+.mini-lbl span{flex:1;text-align:center}
+
+/* steps */
+.steps{display:flex;align-items:center;gap:6px;margin-bottom:16px}
+.steps .s{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3)}
+.steps .s .n{width:22px;height:22px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.steps .s.on{color:var(--ocean-d);font-weight:500}
+.steps .s.on .n{background:var(--ocean)}
+.steps .s.done .n{background:var(--sea)}
+.steps .ln{flex:1;height:2px;background:var(--line)}
+.field{margin-bottom:12px}
+.field label{font-size:13px;color:var(--ink-2);display:block;margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px;background:#fff;color:var(--ink)}
+.opt{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px}
+.opt.on{border-color:var(--ocean);background:var(--ocean-l)}
+.opt .pr{font-weight:700;color:var(--ocean-d)}
+.sum{display:flex;justify-content:space-between;font-size:14px;padding:6px 0}
+.sum.total{font-weight:700;font-size:16px;border-top:1px solid var(--line);margin-top:6px;padding-top:12px}
+
+/* sheet & toast */
+.mask{position:absolute;inset:0;background:rgba(20,35,50,.42);opacity:0;pointer-events:none;transition:.2s;z-index:20}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:10px 18px 26px;transform:translateY(105%);transition:.28s cubic-bezier(.2,.8,.2,1);z-index:21;max-height:86%;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.sheet .grab{width:40px;height:5px;background:var(--line);border-radius:3px;margin:0 auto 14px}
+.sheet h4{font-size:17px;margin-bottom:4px}
+.gear{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.gear:first-of-type{border-top:0}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:28px;height:28px;border-radius:50%;background:var(--bg);font-size:16px;color:var(--ocean)}
+.toast{position:absolute;left:16px;right:16px;top:100px;background:#1f3446;color:#fff;border-radius:14px;padding:13px 16px;font-size:13px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;z-index:30;transform:translateY(-20px);opacity:0;transition:.25s;pointer-events:none}
+.toast.on{transform:none;opacity:1}
+.toast .line{background:#06c755;color:#fff;font-size:10px;font-weight:700;border-radius:5px;padding:2px 5px;flex-shrink:0;margin-top:2px}
+.empty{text-align:center;color:var(--ink-3);font-size:13px;padding:24px 0}
+.ok-big{text-align:center;padding:18px 0 6px}
+.ok-big .c{width:64px;height:64px;border-radius:50%;background:var(--ok-l);color:var(--ok);display:grid;place-items:center;font-size:30px;margin:0 auto 12px}
+.demo-tag{font-size:11px;color:var(--ink-3);text-align:center;margin-top:16px}
+
+@media (max-width:900px){
+  .stage{flex-direction:column;align-items:center;gap:24px;padding:20px 16px 40px}
+  .side{position:static;max-width:390px;width:100%}
+}
+@media (max-width:430px){
+  .stage{padding:0 0 32px}
+  .phone{width:100%;height:100svh;border-radius:0;box-shadow:none}
+  .side{padding:0 16px}
+  .side .intro{padding-top:20px}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="screen">
+      <div class="statusbar"><span class="num">9:41</span><span style="letter-spacing:2px;font-size:11px">▮▮▮ 5G</span></div>
+      <div class="appbar" id="appbar"></div>
+      <div class="content" id="content"></div>
+      <nav class="tabbar" id="tabbar"></nav>
+    </div>
+    <div class="mask" id="mask"></div>
+    <div class="sheet" id="sheet"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <aside class="side">
+    <div class="intro">
+      <h1>Hi Manta 學員系統｜優化版 Demo</h1>
+      <p class="sub">在左邊手機畫面直接點點看。右側同步說明每個畫面「原本怎麼做、優化後怎麼做」。畫面中的人名、場次與金額皆為示意資料。</p>
+      <div class="mode" id="mode">
+        <button class="on" data-mode="student">學員視角</button>
+        <button data-mode="coach">教練視角</button>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+    <p class="legend">灰色刪除線＝現行版本的做法　｜　黑字＝優化後的做法</p>
+  </aside>
+</div>
+
+<script>
+/* ================= demo data ================= */
+const S = {
+  mode:'student', tab:'home', sessFilter:'全部',
+  exp:1240, streak:4,
+  tasks:[
+    {id:'t1',em:'🌬️',n:'CO2 耐受呼吸表',s:'陸上進行，約 10 分鐘',exp:20,done:true},
+    {id:'t2',em:'🧘',n:'伸展與呼吸肌放鬆',s:'10 分鐘',exp:20,done:false},
+    {id:'t3',em:'🦵',n:'蛙鞋肌力訓練',s:'深蹲或踢腿 3 組',exp:20,done:false},
+  ],
+  sessions:[
+    {id:'s1',m:'11月',d:27,w:'週五',loc:'墾丁小灣',type:'開放水域',time:'14:00–16:00',coach:'小光教練',cap:10,taken:6,level:'AIDA2 以上',fee:600},
+    {id:'s2',m:'11月',d:28,w:'週六',loc:'台中潛立方',type:'深水池',time:'10:00–12:00',coach:'抹茶教練',cap:10,taken:10,level:'不限',fee:1200},
+    {id:'s3',m:'11月',d:29,w:'週日',loc:'台中潛立方',type:'深水池',time:'14:00–16:00',coach:'小光教練',cap:10,taken:3,level:'不限',fee:1200},
+    {id:'s4',m:'12月',d:3,w:'週三',loc:'台中五米池',type:'泳池',time:'19:00–21:00',coach:'威利教練',cap:8,taken:2,level:'不限',fee:350},
+  ],
+  booked:[],
+  waitlist:[],
+  trips:[
+    {id:'p1',t:'宿霧 鯨鯊共游與沙丁魚風暴',when:'2027/2/9–2/14',days:'六天五夜',place:'菲律賓 宿霧',cap:12,taken:7,status:'招募中',price:42800,dep:10000,grad:['#2f6fae','#3fa7a3']},
+    {id:'p2',t:'沖繩 大翅鯨＋和服旅拍',when:'2027/3/11–3/15',days:'五天四夜',place:'日本 沖繩',cap:10,taken:8,status:'已成團',price:38500,dep:10000,grad:['#1f4f80','#7aa7d6']},
+    {id:'p3',t:'科隆 儒艮共游＋海狼湖',when:'2027/4/1–4/5',days:'五天四夜',place:'菲律賓 科隆',cap:12,taken:12,status:'已滿團・可候補',price:36900,dep:10000,grad:['#26807c','#9fd3c7']},
+  ],
+  tripBooking:null,
+  queue:[
+    {id:'q1',type:'徽章證明',em:'🐋',who:'海葵',what:'生態學家：與鯨鯊合照',time:'2 小時前'},
+    {id:'q2',type:'證照認證',em:'🪪',who:'阿布',what:'AIDA2 證照上傳',time:'3 小時前'},
+    {id:'q3',type:'揪團上架',em:'🤿',who:'小魚乾',what:'週末東北角岸潛 2 日',time:'5 小時前'},
+    {id:'q4',type:'水攝作品',em:'📸',who:'蘇蘇',what:'〈藍洞的光〉蘭嶼八代灣',time:'昨天'},
+  ],
+  queueFilter:'全部',
+  remindSent:false,
+};
+const BADGES=[
+  {em:'🌊',n:'團練處女秀',got:true,auto:true},
+  {em:'🔁',n:'換換口味',got:true,auto:true},
+  {em:'🏝️',n:'潛旅・宮古島',got:true,auto:true},
+  {em:'🗓️',n:'每月一潛',got:false,auto:true,prog:'本月 0/1'},
+  {em:'🦈',n:'生態學家',got:false,auto:false},
+  {em:'🧜',n:'翻滾吧人魚',got:false,auto:false},
+  {em:'📍',n:'解鎖新潛點',got:false,auto:true,prog:'3/6'},
+  {em:'🏆',n:'繡花針',got:false,auto:true,prog:'年度團練 9 次'},
+];
+
+/* ================= notes (right panel) ================= */
+const NOTES={
+  home:{t:'首頁',items:[
+    ['底部導覽列塞 12 個項目，手機一次只看得到 5 個','導覽列收斂為 <b>5 個主要分頁</b>，揪團、裝備、水攝、排行榜收進「我的」'],
+    ['首頁約 6 個螢幕長，什麼都放','首頁只回答兩件事：<b>我下一步要做什麼、我接下來有什麼行程</b>'],
+    ['徽章積分、經驗值兩套分數並存','合併成 <b>一套「海洋值」</b>，等級、排行榜都用同一個數字'],
+    ['正式環境出現「Edit with Base44」按鈕、過期的上線跑馬燈','上線前清掉開發痕跡與測試資料，跑馬燈改成可設定到期日的公告'],
+  ]},
+  book:{t:'團練預約',items:[
+    ['所有預約人工審核，24 小時處理一次，急件請到 LINE 找教練','<b>證照已認證＋還有名額＝即時確認</b>，只有例外才進教練的審核中心'],
+    ['額滿就只能放棄','額滿場次可 <b>一鍵候補</b>，有人取消時自動遞補並 LINE 通知'],
+    ['確認信走 Gmail，曾撞到每日寄送上限','預約結果、行前一天提醒改用 <b>LINE 官方帳號推播</b>'],
+    ['取消只要填原因，沒有規則','明確顯示取消期限（例：前 24 小時），放鳥次數記錄在學員資料'],
+  ]},
+  task:{t:'任務與徽章',items:[
+    ['「今天試試看能憋氣多久」，沒有任何安全提醒','任務頁置頂 <b>安全提醒</b>：閉氣練習只在陸上進行，下水一律遵守潛伴制度'],
+    ['100 枚徽章幾乎都要學員拍照、教練審核','系統已有的資料（團練次數、潛旅紀錄、換教練）<b>自動發放</b>，只有生態照、表演類才需證明'],
+    ['每日練習 +20，買一台相機 +10,000，等於練 500 天','分數改以 <b>練習與出席為主</b>；裝備改成「在店內購買自動入帳」，遊戲化直接連到營收'],
+  ]},
+  trip:{t:'潛旅',items:[
+    ['報名 5 步驟：私訊 IG 問名額、填外部表單、匯款、等幾天、被拉進群組','<b>App 內 3 步完成</b>：選方案、填資料、回報匯款末五碼，名額即時扣除'],
+    ['行程詳情只連到 Notion 頁面','重點資訊（費用、包含項目、適合等級）直接顯示，Notion 保留給完整行程表'],
+    ['狀態沒人更新：7 月的團還顯示「未成團」','依日期與人數 <b>自動切換狀態</b>（招募中、已成團、已滿團、已圓滿落幕）'],
+    ['參加完潛旅還要自己上傳證明領徽章','行程結束 <b>自動發放潛旅徽章</b>'],
+  ]},
+  me:{t:'我的',items:[
+    ['群組暱稱要手動照「證照/日期/暱稱」格式填，改暱稱還要審核','暱稱前綴 <b>由證照資料自動產生</b>，學員只填自己的暱稱'],
+    ['揪團、裝備、水攝、排行榜都佔一個主選單','收進「我的」，保留功能但不搶主畫面'],
+    ['裝備選購只寫 LINE ID，店家不知道誰有興趣','加上「我有興趣」按鈕，名單直接進後台，店家可以主動聯繫'],
+  ]},
+  queue:{t:'教練｜審核中心',items:[
+    ['7 條審核分散在不同頁面：證照、暱稱、預約、徽章、任務照片、水攝、揪團','<b>一個收件匣</b> 集中所有待審項目，可依類型篩選，一鍵核准或退回'],
+    ['每一筆預約都要人工點確認','符合規則的預約 <b>自動通過並留下紀錄</b>，教練只處理例外'],
+    ['退回原因要另外私訊說明','退回時選常用理由，系統自動 LINE 通知學員'],
+  ]},
+  dash:{t:'教練｜經營儀表板',items:[
+    ['後台只有「資料匯出」，要看數字得自己整理 Excel','即時看 <b>出席率、回訪率、潛旅成團進度</b>'],
+    ['不知道哪些學員很久沒來','自動列出 <b>60 天沒下水的學員</b>，一鍵發 LINE 邀請回來團練'],
+    ['學員升級沒有人追','依證照與上課日期提示 <b>可推薦的進階課程</b>（例：AIDA2 滿 3 個月推 AIDA3）'],
+  ]},
+};
+
+/* ================= icons ================= */
+const I={
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  task:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="6"/><path d="m8.5 14.5-1.5 7 5-3 5 3-1.5-7"/></svg>',
+  trip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 16l20-7-6 12-3-5z"/><path d="M13 16 22 9"/></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg>',
+  queue:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H15l-3 3-3-3H4z"/><path d="m9 10 2 2 4-4"/></svg>',
+  dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  bell:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9M10 20a2 2 0 0 0 4 0"/></svg>',
+};
+
+/* ================= helpers ================= */
+const $=s=>document.querySelector(s);
+const money=n=>'NT$ '+n.toLocaleString('en-US');
+const level=e=>{const t=[[0,'海綿寶寶'],[500,'珊瑚獵人'],[2000,'深海探險家'],[5000,'海洋征服者']];let cur=t[0],nx=null;for(let i=0;i<t.length;i++){if(e>=t[i][0]){cur=t[i];nx=t[i+1]||null}}return{name:cur[1],next:nx,from:cur[0]}};
+let toastT;
+function toast(msg,line=true){const el=$('#toast');el.innerHTML=(line?'<span class="line">LINE</span>':'')+'<span>'+msg+'</span>';el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),2800)}
+function openSheet(html){$('#sheet').innerHTML='<div class="grab"></div>'+html;$('#sheet').classList.add('on');$('#mask').classList.add('on')}
+function closeSheet(){$('#sheet').classList.remove('on');$('#mask').classList.remove('on')}
+$('#mask').onclick=closeSheet;
+
+/* ================= render ================= */
+const TABS={student:[['home','首頁'],['book','預約'],['task','任務'],['trip','潛旅'],['me','我的']],coach:[['queue','審核中心'],['dash','經營儀表板']]};
+
+function render(){
+  const tabs=TABS[S.mode];
+  if(!tabs.find(t=>t[0]===S.tab)) S.tab=tabs[0][0];
+  const tb=$('#tabbar');
+  tb.style.gridTemplateColumns=`repeat(${tabs.length},1fr)`;
+  tb.innerHTML=tabs.map(([k,l])=>`<button data-tab="${k}" class="${S.tab===k?'on':''}" style="position:relative">${I[k]}${k==='queue'&&S.queue.length?`<span class="badge num">${S.queue.length}</span>`:''}<span>${l}</span></button>`).join('');
+  tb.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S.tripBooking=null;render();$('#content').scrollTop=0});
+  const titles={home:'',book:'團練預約',task:'任務與徽章',trip:'潛旅',me:'我的',queue:'審核中心',dash:'經營儀表板'};
+  $('#appbar').innerHTML=S.tab==='home'
+    ?`<div class="brand"><div class="logo">🐟</div>Hi Manta</div><button class="bell" onclick="toast('明天 14:00 墾丁小灣團練，記得帶防寒衣與配重。')">${I.bell}<span class="dot"></span></button>`
+    :`<div class="title">${titles[S.tab]}</div>${S.mode==='coach'?'<span class="pill p-sun">教練</span>':''}`;
+  $('#content').innerHTML=VIEWS[S.tab]();
+  bind();
+  renderNote();
+}
+
+function renderNote(){
+  const n=NOTES[S.tab];
+  $('#note').innerHTML=`<h2>${n.t}<span class="tag">優化重點 ${n.items.length}</span></h2>`+n.items.map(([b,a])=>`<div class="pair"><div class="before">${b}</div><div class="after">→ ${a}</div></div>`).join('');
+}
+
+const VIEWS={
+home(){
+  const lv=level(S.exp), pct=lv.next?Math.round((S.exp-lv.from)/(lv.next[0]-lv.from)*100):100;
+  const mine=S.booked.map(id=>S.sessions.find(s=>s.id===id));
+  const nextS=mine[0];
+  const tripB=S.tripBooking&&S.tripBooking.done?S.trips.find(t=>t.id===S.tripBooking.id):null;
+  const left=S.tasks.filter(t=>!t.done).length;
+  return `
+  <div class="hero">
+    <div class="row"><div class="avatar">🐠</div><div><div class="hi">早安，今天也來練習吧</div><div class="name">阿杜</div></div>
+      <span class="pill" style="margin-left:auto;background:rgba(255,255,255,.2);color:#fff">AIDA2</span></div>
+    <div class="lv"><span>${lv.name}・海洋值 <b class="num">${S.exp.toLocaleString()}</b></span><span>${lv.next?'距離 '+lv.next[1]+' 還差 <b class="num">'+(lv.next[0]-S.exp)+'</b>':'已達最高階'}</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+  </div>
+
+  ${nextS?`
+  <div class="next" style="background:var(--ok-l);border-color:#bfe5cf"><div class="ic">✅</div><div style="flex:1"><div class="t">${nextS.m}${nextS.d}日 ${nextS.loc} 團練已確認</div><div class="d">${nextS.time}・${nextS.coach}・前一天會 LINE 提醒你</div></div></div>`
+  :`
+  <div class="next"><div class="ic">🎯</div><div style="flex:1"><div class="t">今天還有 ${left} 項訓練</div><div class="d">已連續打卡 ${S.streak} 天，別讓連續紀錄斷掉</div></div><button class="btn sm" data-go="task">去練習</button></div>`}
+
+  <div class="sec"><h3>近期團練</h3><a data-go="book">全部場次</a></div>
+  ${S.sessions.slice(0,2).map(sessCard).join('')}
+
+  <div class="sec"><h3>即將出發的潛旅</h3><a data-go="trip">全部潛旅</a></div>
+  ${tripB?`<div class="card" style="border-color:var(--sea)"><span class="pill p-sea">已報名・待對帳</span><div class="nm" style="font-weight:700;margin-top:6px">${tripB.t}</div><div class="meta">${tripB.when}・訂金已回報，店家確認後會拉你進行程群組</div></div>`:''}
+  ${S.trips.slice(0,1).map(tripCard).join('')}
+  <p class="demo-tag">提案 Demo｜示意資料</p>`;
+},
+
+book(){
+  const f=S.sessFilter;
+  const list=S.sessions.filter(s=>f==='全部'||s.loc.includes(f));
+  return `
+  <div class="alert info">✅ 你的 AIDA2 證照已認證。<br>有名額的場次 <b>按下就確認</b>，不用等人工審核。</div>
+  <div class="chips">${['全部','台中','墾丁'].map(c=>`<button class="chip ${f===c?'on':''}" data-filter="${c}">${c}</button>`).join('')}</div>
+  ${list.map(sessCard).join('')||'<div class="empty">這個地點目前沒有場次</div>'}`;
+},
+
+task(){
+  const done=S.tasks.filter(t=>t.done).length;
+  return `
+  <div class="alert safe"><span>⚠️</span><span><b>安全第一：</b>閉氣與呼吸訓練請在陸上進行。任何下水練習都要有潛伴陪同，絕不獨自在水中閉氣。</span></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div><div style="font-weight:700">今日訓練</div><div class="meta">完成 ${done}/${S.tasks.length}・連續 ${S.streak} 天</div></div>
+      <span class="pill p-sea">每項 +20 海洋值</span>
+    </div>
+    ${S.tasks.map(t=>`<div class="task"><div class="em">${t.em}</div><div><div class="tn">${t.n}</div><div class="ts">${t.s}</div></div><div class="r"><button class="done-btn ${t.done?'on':''}" data-task="${t.id}">✓</button></div></div>`).join('')}
+  </div>
+
+  <div class="sec"><h3>徽章收藏</h3><span class="meta">${BADGES.filter(b=>b.got).length} / 100</span></div>
+  <div class="card">
+    <div class="badges">${BADGES.map(b=>`<div class="bdg ${b.got?'got':''}"><div class="ico">${b.em}</div>${b.n}<br>${b.got?'<span class="pill p-ok" style="margin-top:3px">已獲得</span>':b.auto?`<span class="pill p-ocean" style="margin-top:3px">${b.prog||'自動'}</span>`:'<span class="pill p-gray" style="margin-top:3px">需證明</span>'}</div>`).join('')}</div>
+    <div class="meta" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">🔵 藍色標籤＝系統依團練與潛旅紀錄 <b>自動發放</b>，不用上傳照片。</div>
+  </div>
+
+  <div class="sec"><h3>店內購買自動入帳</h3></div>
+  <div class="card">
+    <div class="task"><div class="em">🤿</div><div><div class="tn">Hi Manta 自潛面鏡</div><div class="ts">11/02 台中據點購買</div></div><div class="r"><span class="pill p-ok">+150 已入帳</span></div></div>
+    <div class="meta" style="margin-top:8px">在店內購買裝備，結帳後自動累積海洋值，不用再拍照等審核。</div>
+  </div>`;
+},
+
+trip(){
+  if(S.tripBooking&&!S.tripBooking.done) return tripFlow();
+  return `
+  <div class="chips">${['全部','國外','國內','已參加'].map((c,i)=>`<button class="chip ${i===0?'on':''}">${c}</button>`).join('')}</div>
+  ${S.trips.map(tripCard).join('')}`;
+},
+
+me(){
+  return `
+  <div class="card" style="display:flex;gap:14px;align-items:center">
+    <div class="avatar" style="border-color:var(--line)">🐠</div>
+    <div style="flex:1"><div style="font-weight:700;font-size:16px">A2/20260915/阿杜</div><div class="meta">暱稱前綴依證照自動產生，只需填「阿杜」</div></div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:10px">我的證照</div>
+    <span class="pill p-ok">AIDA2・已認證</span> <span class="pill p-gray">水肺 未取得</span>
+    <div class="next" style="margin-top:12px;background:var(--ocean-l);border-color:#cfe0f1"><div class="ic">📈</div><div style="flex:1"><div class="t">下一步推薦：AIDA3</div><div class="d">你已完成 AIDA2 兩個月，再 4 次團練就符合報名條件</div></div></div>
+  </div>
+  <div class="card" style="padding:4px 16px">
+    ${[['🗓️','我的預約',S.booked.length?S.booked.length+' 筆':''],['🤝','揪團',''],['🛍️','裝備選購',''],['📸','水攝作品',''],['🏆','排行榜','本週第 12 名'],['📍','潛店據點','']].map(([e,n,x])=>`<div class="list-row" data-row="${n}"><span class="em">${e}</span>${n}<span class="meta" style="margin:0 0 0 auto">${x}</span><span class="chev" style="margin-left:8px">›</span></div>`).join('')}
+  </div>`;
+},
+
+queue(){
+  const types=['全部','證照認證','徽章證明','揪團上架','水攝作品'];
+  const list=S.queue.filter(q=>S.queueFilter==='全部'||q.type===S.queueFilter);
+  return `
+  <div class="stat3">
+    <div class="stat"><div class="v num">${S.queue.length}</div><div class="l">待你處理</div></div>
+    <div class="stat"><div class="v num" style="color:var(--ok)">23</div><div class="l">本週自動通過</div></div>
+    <div class="stat"><div class="v num">4.2<span style="font-size:12px">h</span></div><div class="l">平均處理時間</div></div>
+  </div>
+  <div class="chips">${types.map(t=>`<button class="chip ${S.queueFilter===t?'on':''}" data-qf="${t}">${t}</button>`).join('')}</div>
+  <div class="card">
+    ${list.length?list.map(q=>`<div class="q-item"><div class="q-thumb">${q.em}</div><div style="flex:1;min-width:0"><span class="pill p-ocean">${q.type}</span><div style="font-weight:500;font-size:14px;margin-top:4px">${q.who}｜${q.what}</div><div class="meta">${q.time}</div><div class="q-actions"><button class="btn sm ok" data-approve="${q.id}">核准</button><button class="btn sm ghost" data-reject="${q.id}">退回</button></div></div></div>`).join(''):'<div class="empty">🎉 這個分類都處理完了</div>'}
+  </div>
+  <div class="sec"><h3>自動通過紀錄</h3><span class="meta">今天</span></div>
+  <div class="card auto-log">
+    <div><b>✓</b> 09:12　海葵 預約 11/29 潛立方（證照符合・有名額）</div>
+    <div><b>✓</b> 08:40　小魚乾 獲得「團練處女秀」（首次出席）</div>
+    <div><b>✓</b> 08:05　阿布 候補遞補 11/28 潛立方（有人取消）</div>
+  </div>`;
+},
+
+dash(){
+  const m=[62,70,58,75,81,88];
+  return `
+  <div class="stat3">
+    <div class="stat"><div class="v num">88<span style="font-size:12px">%</span></div><div class="l">本月出席率</div></div>
+    <div class="stat"><div class="v num">41<span style="font-size:12px">%</span></div><div class="l">學員回訪率</div></div>
+    <div class="stat"><div class="v num">3</div><div class="l">潛旅待成團</div></div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700">團練出席人次</div><div class="meta">近 6 個月</div>
+    <div class="mini-bars">${m.map((v,i)=>`<i class="${i===5?'hi':''}" style="height:${v}%"></i>`).join('')}</div>
+    <div class="mini-lbl">${['6月','7月','8月','9月','10月','11月'].map(x=>`<span>${x}</span>`).join('')}</div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700">60 天沒下水的學員</div><div class="meta">共 14 位，最可能流失的一群</div></div><span class="pill p-coral">需關注</span></div>
+    <div style="margin:12px 0">${['小蝦　最後下水 9/12','Mimi　最後下水 9/03','老潘　最後下水 8/28'].map(x=>`<div class="kpi-row"><span>${x.split('　')[0]}</span><span class="meta" style="margin:0">${x.split('　')[1]}</span></div>`).join('')}</div>
+    <button class="btn block ${S.remindSent?'':'coral'}" id="remind" ${S.remindSent?'disabled':''}>${S.remindSent?'已發送 14 則 LINE 邀請':'一鍵 LINE 邀請回來團練'}</button>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:6px">可推薦進階課程</div>
+    <div class="kpi-row"><span>AIDA2 滿 3 個月 → AIDA3</span><b class="num">9 位</b></div>
+    <div class="kpi-row"><span>OW 滿 20 支氣瓶 → AOW</span><b class="num">6 位</b></div>
+    <div class="kpi-row"><span>人魚 M0 → M1</span><b class="num">4 位</b></div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:6px">潛旅成團進度</div>
+    ${S.trips.map(t=>`<div class="kpi-row" style="flex-direction:column;align-items:stretch;gap:6px"><div style="display:flex;justify-content:space-between"><span>${t.t.slice(0,10)}</span><span class="num">${t.taken}/${t.cap}</span></div><div class="bar dark"><i style="width:${t.taken/t.cap*100}%"></i></div></div>`).join('')}
+  </div>`;
+},
+};
+
+function sessCard(s){
+  const mine=S.booked.includes(s.id), wl=S.waitlist.includes(s.id), full=s.taken>=s.cap;
+  const left=s.cap-s.taken;
+  let action;
+  if(mine) action=`<span class="pill p-ok">已確認</span>`;
+  else if(wl) action=`<span class="pill p-sun">候補中・第 1 位</span>`;
+  else if(full) action=`<button class="btn sm ghost" data-wait="${s.id}">加入候補</button>`;
+  else action=`<button class="btn sm" data-book="${s.id}">預約</button>`;
+  return `<div class="card"><div class="sess">
+    <div class="date"><div class="m">${s.m}</div><div class="d num">${s.d}</div><div class="w">${s.w}</div></div>
+    <div class="info"><div class="nm">${s.loc}</div><div class="meta">${s.type}・${s.time}<br>${s.coach}・${s.level}</div>
+      <div class="seats"><div class="bar dark"><i style="width:${s.taken/s.cap*100}%;${full?'background:var(--coral)':''}"></i></div><span>${full?'已額滿':'剩 '+left+' 位'}</span></div>
+    </div></div>
+    <div class="foot"><span class="meta" style="margin:0">場地費 <b class="num">${money(s.fee)}</b>・現場收取</span>${action}</div></div>`;
+}
+
+function tripCard(t){
+  const full=t.taken>=t.cap;
+  const booked=S.tripBooking&&S.tripBooking.done&&S.tripBooking.id===t.id;
+  return `<div class="card trip"><div class="cover" style="background:linear-gradient(135deg,${t.grad[0]},${t.grad[1]})"><span class="pill ${full?'p-coral':t.status==='已成團'?'p-ok':'p-ocean'}">${t.status}</span></div>
+    <div class="body"><div class="tt">${t.t}</div><div class="meta">${t.when}・${t.days}・${t.place}</div>
+    <div class="seats"><div class="bar dark"><i style="width:${t.taken/t.cap*100}%"></i></div><span>${t.taken}/${t.cap} 人</span></div>
+    <div class="foot"><span style="font-weight:700;color:var(--ocean-d)" class="num">${money(t.price)}<span class="meta" style="font-weight:400"> 起</span></span>
+    ${booked?'<span class="pill p-sea">已報名</span>':`<button class="btn sm ${full?'ghost':''}" data-trip="${t.id}">${full?'加入候補':'立即報名'}</button>`}</div></div></div>`;
+}
+
+function tripFlow(){
+  const b=S.tripBooking, t=S.trips.find(x=>x.id===b.id);
+  const st=(n,l)=>`<div class="s ${b.step===n?'on':b.step>n?'done':''}"><span class="n">${b.step>n?'✓':n}</span>${l}</div>`;
+  const plans=[['自潛方案',t.price],['水肺方案',t.price+6000],['不下水陪同',t.price-12000]];
+  let body='';
+  if(b.step===1) body=`
+    <div style="font-weight:700;margin-bottom:10px">選擇方案</div>
+    ${plans.map((p,i)=>`<div class="opt ${b.plan===i?'on':''}" data-plan="${i}"><span>${p[0]}</span><span class="pr num">${money(p[1])}</span></div>`).join('')}
+    <div class="field" style="margin-top:14px"><label>房型</label><select id="room"><option>雙人房（可配對室友）</option><option>單人房（+NT$ 6,000）</option></select></div>
+    <button class="btn block" data-next="2">下一步</button>`;
+  if(b.step===2) body=`
+    <div class="alert info">已自動帶入你的會員資料，確認無誤即可。</div>
+    <div class="field"><label>護照英文姓名</label><input value="TU, A-DU"></div>
+    <div class="field"><label>緊急聯絡人電話</label><input value="0912-000-000"></div>
+    <div class="field"><label>證照</label><input value="AIDA2（已認證）" disabled></div>
+    <div style="display:flex;gap:8px"><button class="btn ghost" data-next="1">上一步</button><button class="btn block" data-next="3">下一步</button></div>`;
+  if(b.step===3) body=`
+    <div class="card" style="background:var(--bg)">
+      <div class="sum"><span>${plans[b.plan][0]}</span><span class="num">${money(plans[b.plan][1])}</span></div>
+      <div class="sum"><span>本次先付訂金</span><span class="num">${money(t.dep)}</span></div>
+      <div class="sum total"><span>尾款（出發前 30 天）</span><span class="num">${money(plans[b.plan][1]-t.dep)}</span></div>
+    </div>
+    <div class="meta" style="margin-bottom:10px">匯款帳號：示意銀行（000）0000-000-000000</div>
+    <div class="field"><label>匯款帳號末五碼</label><input id="last5" maxlength="5" placeholder="例：12345" inputmode="numeric"></div>
+    <div style="display:flex;gap:8px"><button class="btn ghost" data-next="2">上一步</button><button class="btn block coral" id="paydone">送出報名</button></div>
+    <p class="meta" style="margin-top:10px">送出後名額會先為你保留 48 小時，店家對帳完成會 LINE 通知並拉你進行程群組。</p>`;
+  return `<button class="meta" data-back style="margin-bottom:10px">‹ 返回潛旅列表</button>
+    <div style="font-weight:700;font-size:16px;line-height:1.45">${t.t}</div><div class="meta" style="margin-bottom:14px">${t.when}・剩 ${t.cap-t.taken} 個名額</div>
+    <div class="steps">${st(1,'方案')}<span class="ln"></span>${st(2,'資料')}<span class="ln"></span>${st(3,'訂金')}</div>
+    ${body}`;
+}
+
+/* ================= interactions ================= */
+function bind(){
+  const c=$('#content');
+  c.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.go;render();c.scrollTop=0});
+  c.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{S.sessFilter=b.dataset.filter;render()});
+  c.querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>bookSheet(b.dataset.book));
+  c.querySelectorAll('[data-wait]').forEach(b=>b.onclick=()=>{S.waitlist.push(b.dataset.wait);render();toast('已加入候補第 1 位。有人取消會自動遞補，並用 LINE 通知你。')});
+  c.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>{const t=S.tasks.find(x=>x.id===b.dataset.task);t.done=!t.done;S.exp+=t.done?t.exp:-t.exp;render();if(t.done)toast('+20 海洋值！今日訓練完成 '+S.tasks.filter(x=>x.done).length+'/'+S.tasks.length,false)});
+  c.querySelectorAll('[data-trip]').forEach(b=>b.onclick=()=>{const t=S.trips.find(x=>x.id===b.dataset.trip);if(t.taken>=t.cap){toast('已加入「'+t.t.slice(0,8)+'」候補，有名額釋出會第一時間通知你。');b.outerHTML='<span class="pill p-sun">候補中</span>';return}S.tripBooking={id:t.id,step:1,plan:0,done:false};render();c.scrollTop=0});
+  c.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>{S.tripBooking.plan=+b.dataset.plan;render()});
+  c.querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>{S.tripBooking.step=+b.dataset.next;render();c.scrollTop=0});
+  const back=c.querySelector('[data-back]'); if(back) back.onclick=()=>{S.tripBooking=null;render()};
+  const pd=$('#paydone'); if(pd) pd.onclick=()=>{const v=$('#last5').value.trim();if(!/^\d{5}$/.test(v)){$('#last5').style.borderColor='var(--coral)';$('#last5').placeholder='請輸入 5 位數字';return}const t=S.trips.find(x=>x.id===S.tripBooking.id);t.taken++;S.tripBooking.done=true;S.tab='trip';render();
+    openSheet(`<div class="ok-big"><div class="c">✓</div><h4>報名已送出</h4><p class="meta">名額已為你保留 48 小時<br>店家對帳後會 LINE 通知並拉你進群組</p></div><div class="card" style="background:var(--bg);margin-top:10px"><div class="meta">原本流程：私訊 IG → 外部表單 → 匯款 → 等待 → 進群組<br><b style="color:var(--ok)">現在：App 內 3 步完成，名額即時扣除</b></div></div><button class="btn block" onclick="closeSheet()">好的</button>`)};
+  c.querySelectorAll('[data-qf]').forEach(b=>b.onclick=()=>{S.queueFilter=b.dataset.qf;render()});
+  c.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>{const q=S.queue.find(x=>x.id===b.dataset.approve);S.queue=S.queue.filter(x=>x!==q);render();toast('已核准，系統已 LINE 通知「'+q.who+'」。')});
+  c.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>rejectSheet(b.dataset.reject));
+  const rm=$('#remind'); if(rm) rm.onclick=()=>{S.remindSent=true;render();toast('已發送 14 則邀請：「好久不見！這週六潛立方還有位置，要不要一起下水？」')};
+  c.querySelectorAll('[data-row]').forEach(b=>b.onclick=()=>{const n=b.dataset.row;if(n==='我的預約'){S.tab='book';render()}else if(n==='裝備選購'){gearSheet()}else toast('「'+n+'」沿用現有功能，從這裡進入。',false)});
+}
+
+function bookSheet(id){
+  const s=S.sessions.find(x=>x.id===id);
+  const gear=[['面鏡呼吸管',100],['長蛙鞋',200],['防寒衣',200],['配重帶',50]];
+  const qty=gear.map(()=>0);
+  const draw=()=>{const sum=gear.reduce((a,g,i)=>a+g[1]*qty[i],0);
+    openSheet(`<h4>${s.m}${s.d}日 ${s.loc}</h4><div class="meta" style="margin-bottom:14px">${s.time}・${s.coach}・剩 ${s.cap-s.taken} 位</div>
+    <div style="font-weight:700;font-size:14px;margin-bottom:4px">需要租借裝備嗎？</div>
+    ${gear.map((g,i)=>`<div class="gear"><span>${g[0]}<span class="meta"> ${money(g[1])}</span></span><div class="stepper"><button data-m="${i}">−</button><span class="num">${qty[i]}</span><button data-p="${i}">＋</button></div></div>`).join('')}
+    <div class="card" style="background:var(--bg);margin-top:12px"><div class="sum"><span>場地費</span><span class="num">${money(s.fee)}</span></div><div class="sum"><span>租借裝備</span><span class="num">${money(sum)}</span></div><div class="sum total"><span>現場合計</span><span class="num">${money(s.fee+sum)}</span></div></div>
+    <p class="meta" style="margin-bottom:12px">開場前 24 小時內取消將記錄一次缺席。</p>
+    <button class="btn block" id="confirmBook">確認預約</button>`);
+    $('#sheet').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{qty[b.dataset.p]++;draw()});
+    $('#sheet').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{qty[b.dataset.m]=Math.max(0,qty[b.dataset.m]-1);draw()});
+    $('#confirmBook').onclick=()=>{S.booked.push(id);s.taken++;closeSheet();render();toast('預約成功，已即時確認！'+s.m+s.d+'日 '+s.time+' '+s.loc+'，前一天會再提醒你。')};
+  };
+  draw();
+}
+
+function rejectSheet(id){
+  const q=S.queue.find(x=>x.id===id);
+  const rs=['照片看不清楚，請重新上傳','與徽章條件不符','資訊不完整，請補充後再送出'];
+  openSheet(`<h4>退回：${q.who}｜${q.what}</h4><div class="meta" style="margin-bottom:14px">選一個理由，系統會自動 LINE 通知學員</div>
+    ${rs.map((r,i)=>`<div class="opt" data-r="${i}">${r}</div>`).join('')}`);
+  $('#sheet').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{S.queue=S.queue.filter(x=>x!==q);closeSheet();render();toast('已退回並通知「'+q.who+'」：'+rs[b.dataset.r])});
+}
+
+function gearSheet(){
+  const items=[['Hi Manta 自潛面鏡',950,'🤿'],['Hi Manta 呼吸管',250,'🫧'],['Hi Manta 毛巾衣',1480,'🧥']];
+  openSheet(`<h4>裝備選購</h4><div class="meta" style="margin-bottom:12px">按「我有興趣」，店家會主動聯絡你確認尺寸與庫存</div>
+    ${items.map(([n,p,e],i)=>`<div class="gear"><span>${e} ${n}<br><span class="meta num">${money(p)}</span></span><button class="btn sm ghost" data-int="${i}">我有興趣</button></div>`).join('')}`);
+  $('#sheet').querySelectorAll('[data-int]').forEach(b=>b.onclick=()=>{b.outerHTML='<span class="pill p-ok">已通知店家</span>';toast('店家已收到你的詢問，會透過 LINE 與你聯繫。')});
+}
+
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#mode button').forEach(x=>x.classList.toggle('on',x===b));
+  S.mode=b.dataset.mode;S.tab=TABS[S.mode][0][0];closeSheet();render();$('#content').scrollTop=0;
+});
+
+render();
+</script>
+</body>
+</html>
