@@ -155,6 +155,10 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 .steps .s.done .n{background:var(--sea)}
 .steps .ln{flex:1;height:2px;background:var(--line)}
 .field{margin-bottom:12px}
+.back{font-size:24px;line-height:1;color:var(--ink);padding:2px 10px 4px 0}
+.crumb{font-size:12px;color:var(--ink-3);margin:-4px 2px 12px}
+.grp-host{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);margin-top:8px}
+.grp-host .av{width:22px;height:22px;border-radius:50%;background:var(--coral-l);display:grid;place-items:center;font-size:12px}
 .field label{font-size:13px;color:var(--ink-2);display:block;margin-bottom:6px}
 .field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px;background:#fff;color:var(--ink)}
 .opt{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px}
@@ -235,6 +239,14 @@ const S = {
     {id:'q4',type:'水攝作品',em:'📸',who:'蘇蘇',what:'〈藍洞的光〉蘭嶼八代灣',time:'昨天'},
   ],
   queueFilter:'全部',
+  sub:null, from:null, groupFilter:'潛水活動', joined:[],
+  groups:[
+    {id:'g1',cat:'潛水活動',em:'🤿',t:'週末東北角岸潛 2 日',when:'12/5（六）–12/6（日）',where:'新北 龍洞',host:'小魚乾',lvl:'AIDA2 以上',cap:6,taken:4},
+    {id:'g2',cat:'潛水活動',em:'🌊',t:'潛立方加練：靜態閉氣互助',when:'12/2（三）19:00',where:'台中潛立方',host:'海葵',lvl:'不限',cap:4,taken:2},
+    {id:'g3',cat:'潛水活動',em:'🐢',t:'小琉球追海龜一日遊',when:'12/12（六）',where:'屏東 小琉球',host:'阿布',lvl:'AIDA1 以上',cap:8,taken:8},
+    {id:'g4',cat:'社群活動',em:'🍜',t:'團練後一起吃宵夜',when:'11/29（日）17:00',where:'台中 西屯',host:'蘇蘇',lvl:'不限',cap:10,taken:5},
+    {id:'g5',cat:'社群活動',em:'🎬',t:'海洋紀錄片觀影會',when:'12/8（二）20:00',where:'線上',host:'小光教練',lvl:'不限',cap:20,taken:9},
+  ],
   remindSent:false,
 };
 const BADGES=[
@@ -280,12 +292,16 @@ function render(){
   const tb=$('#tabbar');
   tb.style.gridTemplateColumns=`repeat(${tabs.length},1fr)`;
   tb.innerHTML=tabs.map(([k,l])=>`<button data-tab="${k}" class="${S.tab===k?'on':''}" style="position:relative">${I[k]}${k==='queue'&&S.queue.length?`<span class="badge num">${S.queue.length}</span>`:''}<span>${l}</span></button>`).join('');
-  tb.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S.tripBooking=null;render();$('#content').scrollTop=0});
+  tb.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S.sub=null;S.tripBooking=null;render();$('#content').scrollTop=0});
   const titles={home:'',book:'團練預約',task:'任務與徽章',trip:'潛旅',me:'我的',queue:'審核中心',dash:'經營儀表板'};
   $('#appbar').innerHTML=S.tab==='home'
     ?`<div class="brand"><div class="logo">🐟</div>Hi Manta</div><div style="display:flex;align-items:center;gap:4px">${`<button class="switch" onclick="setMode('${S.mode==='student'?'coach':'student'}')">${S.mode==='student'?'切換教練視角':'切換學員視角'}</button>`}<button class="bell" onclick="toast('明天 14:00 墾丁小灣團練，記得帶防寒衣與配重。')">${I.bell}<span class="dot"></span></button></div>`
     :`<div class="title">${titles[S.tab]}</div>${`<button class="switch" onclick="setMode('${S.mode==='student'?'coach':'student'}')">${S.mode==='student'?'切換教練視角':'切換學員視角'}</button>`}`;
-  $('#content').innerHTML=VIEWS[S.tab]();
+  if(S.sub){
+    $('#appbar').innerHTML=`<div style="display:flex;align-items:center"><button class="back" data-subback aria-label="返回">‹</button><div class="title">${SUBS[S.sub].title}</div></div><button class="switch" onclick="setMode('${S.mode==='student'?'coach':'student'}')">${S.mode==='student'?'切換教練視角':'切換學員視角'}</button>`;
+    $('#appbar').querySelector('[data-subback]').onclick=()=>{const f=S.from;S.sub=null;S.tab=f||S.tab;render();$('#content').scrollTop=0};
+  }
+  $('#content').innerHTML=S.sub?SUBS[S.sub].view():VIEWS[S.tab]();
   bind();
 }
 
@@ -312,6 +328,8 @@ home(){
 
   <div class="sec"><h3>近期團練</h3><a data-go="book">全部場次</a></div>
   ${S.sessions.slice(0,2).map(sessCard).join('')}
+
+  <div class="list-row card" data-sub="group" style="padding:14px 16px;border-top:1px solid var(--line)"><span class="em">🤝</span><div><div style="font-weight:700">本週揪團</div><div class="meta" style="margin:0">${S.groups.filter(g=>g.cat==='潛水活動').length} 個潛水活動正在找夥伴</div></div><span class="chev">›</span></div>
 
   <div class="sec"><h3>即將出發的潛旅</h3><a data-go="trip">全部潛旅</a></div>
   ${tripB?`<div class="card" style="border-color:var(--sea)"><span class="pill p-sea">已報名・待對帳</span><div class="nm" style="font-weight:700;margin-top:6px">${tripB.t}</div><div class="meta">${tripB.when}・訂金已回報，店家確認後會拉你進行程群組</div></div>`:''}
@@ -486,6 +504,24 @@ function tripFlow(){
     ${body}`;
 }
 
+const SUBS={
+group:{title:'揪團',view(){
+  const f=S.groupFilter, list=S.groups.filter(g=>g.cat===f);
+  return `<div class="crumb">${S.from==='home'?'首頁':'我的'} › 揪團　<span style="color:var(--ink-3)">（不在底部導覽，從${S.from==='home'?'首頁卡片':'「我的」'}進入，左上角返回）</span></div>
+  <div class="chips">${['潛水活動','社群活動'].map(c=>`<button class="chip ${f===c?'on':''}" data-gf="${c}">${c}</button>`).join('')}</div>
+  ${f==='社群活動'?'<div class="alert info">社群活動另外分類，預設只看潛水活動，找下水夥伴更快。</div>':''}
+  ${list.map(g=>{const full=g.taken>=g.cap, j=S.joined.includes(g.id);
+    return `<div class="card"><div style="display:flex;gap:12px"><div style="font-size:26px">${g.em}</div><div style="flex:1;min-width:0">
+      <div style="font-weight:700;font-size:15px">${g.t}</div>
+      <div class="meta">${g.when}・${g.where}</div>
+      <div style="margin-top:6px"><span class="pill p-ocean">${g.lvl}</span> <span class="pill ${full?'p-gray':'p-ok'}">${full?'已額滿':'還差 '+(g.cap-g.taken)+' 人'}</span></div>
+      <div class="grp-host"><span class="av">🙂</span>發起人 ${g.host}</div></div></div>
+      <div style="margin-top:10px;text-align:right">${j?'<span class="pill p-ok">已加入・LINE 群組連結已傳送</span>':full?'<span class="pill p-gray">已額滿</span>':`<button class="btn sm" data-join="${g.id}">我要加入</button>`}</div></div>`}).join('')}
+  <button class="btn block ghost" id="newGroup" style="margin-top:4px">＋ 發起揪團</button>
+  <p class="meta" style="margin-top:8px;text-align:center">已認證證照的學員發起潛水活動，送出即上架，教練只會收到通知</p>`;
+}},
+};
+
 /* ================= interactions ================= */
 function bind(){
   const c=$('#content');
@@ -504,7 +540,11 @@ function bind(){
   c.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>{const q=S.queue.find(x=>x.id===b.dataset.approve);S.queue=S.queue.filter(x=>x!==q);render();toast('已核准，系統已 LINE 通知「'+q.who+'」。')});
   c.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>rejectSheet(b.dataset.reject));
   const rm=$('#remind'); if(rm) rm.onclick=()=>{S.remindSent=true;render();toast('已發送 14 則邀請：「好久不見！這週六潛立方還有位置，要不要一起下水？」')};
-  c.querySelectorAll('[data-row]').forEach(b=>b.onclick=()=>{const n=b.dataset.row;if(n==='我的預約'){S.tab='book';render()}else if(n==='裝備選購'){gearSheet()}else toast('「'+n+'」沿用現有功能，從這裡進入。',false)});
+  c.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{S.from=S.tab;S.sub=b.dataset.sub;render();c.scrollTop=0});
+  c.querySelectorAll('[data-gf]').forEach(b=>b.onclick=()=>{S.groupFilter=b.dataset.gf;render()});
+  c.querySelectorAll('[data-join]').forEach(b=>b.onclick=()=>{const g=S.groups.find(x=>x.id===b.dataset.join);g.taken++;S.joined.push(g.id);render();toast('已加入「'+g.t+'」，發起人與 LINE 群組連結已傳給你。')});
+  const ng=$('#newGroup'); if(ng) ng.onclick=()=>toast('揪團已上架！你的 AIDA2 已認證，不用等審核。教練會收到一則通知。');
+  c.querySelectorAll('[data-row]').forEach(b=>b.onclick=()=>{const n=b.dataset.row;if(n==='揪團'){S.from='me';S.sub='group';render();c.scrollTop=0}else if(n==='我的預約'){S.tab='book';render()}else if(n==='裝備選購'){gearSheet()}else toast('「'+n+'」沿用現有功能，從這裡進入。',false)});
 }
 
 function bookSheet(id){
@@ -540,7 +580,7 @@ function gearSheet(){
   $('#sheet').querySelectorAll('[data-int]').forEach(b=>b.onclick=()=>{b.outerHTML='<span class="pill p-ok">已通知店家</span>';toast('店家已收到你的詢問，會透過 LINE 與你聯繫。')});
 }
 
-function setMode(m){S.mode=m;S.tab=TABS[m][0][0];S.tripBooking=null;closeSheet();render();$('#content').scrollTop=0}
+function setMode(m){S.mode=m;S.sub=null;S.tab=TABS[m][0][0];S.tripBooking=null;closeSheet();render();$('#content').scrollTop=0}
 
 render();
 </script>
