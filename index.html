@@ -233,6 +233,7 @@ const S = {
   ],
   tripBooking:null,
   queue:[
+    {id:'q0',type:'訂金對帳',em:'💰',who:'小魚乾',what:'沖繩 大翅鯨＋和服旅拍',time:'1 小時前',pay:{amt:10000,last5:'38271'}},
     {id:'q1',type:'徽章證明',em:'🐋',who:'海葵',what:'生態學家：與鯨鯊合照',time:'2 小時前'},
     {id:'q2',type:'證照認證',em:'🪪',who:'阿布',what:'AIDA2 證照上傳',time:'3 小時前'},
     {id:'q3',type:'揪團上架',em:'🤿',who:'小魚乾',what:'週末東北角岸潛 2 日',time:'5 小時前'},
@@ -395,7 +396,7 @@ me(){
 },
 
 queue(){
-  const types=['全部','證照認證','徽章證明','揪團上架','水攝作品'];
+  const types=['全部','訂金對帳','證照認證','徽章證明','揪團上架','水攝作品'];
   const list=S.queue.filter(q=>S.queueFilter==='全部'||q.type===S.queueFilter);
   return `
   <div class="stat3">
@@ -405,7 +406,7 @@ queue(){
   </div>
   <div class="chips">${types.map(t=>`<button class="chip ${S.queueFilter===t?'on':''}" data-qf="${t}">${t}</button>`).join('')}</div>
   <div class="card">
-    ${list.length?list.map(q=>`<div class="q-item"><div class="q-thumb">${q.em}</div><div style="flex:1;min-width:0"><span class="pill p-ocean">${q.type}</span><div style="font-weight:500;font-size:14px;margin-top:4px">${q.who}｜${q.what}</div><div class="meta">${q.time}</div><div class="q-actions"><button class="btn sm ok" data-approve="${q.id}">核准</button><button class="btn sm ghost" data-reject="${q.id}">退回</button></div></div></div>`).join(''):'<div class="empty">🎉 這個分類都處理完了</div>'}
+    ${list.length?list.map(q=>`<div class="q-item"><div class="q-thumb">${q.em}</div><div style="flex:1;min-width:0"><span class="pill p-ocean">${q.type}</span><div style="font-weight:500;font-size:14px;margin-top:4px">${q.who}｜${q.what}</div>${q.pay?`<div class="meta">訂金 <b class="num">${money(q.pay.amt)}</b>・帳號末五碼 <b class="num">${q.pay.last5}</b></div><div class="meta" style="color:var(--ink-3)">請對照銀行入帳紀錄後再確認</div>`:''}<div class="meta">${q.time}</div><div class="q-actions"><button class="btn sm ok" data-approve="${q.id}">${q.pay?'確認入帳':'核准'}</button><button class="btn sm ghost" data-reject="${q.id}">退回</button></div></div></div>`).join(''):'<div class="empty">🎉 這個分類都處理完了</div>'}
   </div>
   <div class="sec"><h3>自動通過紀錄</h3><span class="meta">今天</span></div>
   <div class="card auto-log">
@@ -534,10 +535,10 @@ function bind(){
   c.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>{S.tripBooking.plan=+b.dataset.plan;render()});
   c.querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>{S.tripBooking.step=+b.dataset.next;render();c.scrollTop=0});
   const back=c.querySelector('[data-back]'); if(back) back.onclick=()=>{S.tripBooking=null;render()};
-  const pd=$('#paydone'); if(pd) pd.onclick=()=>{const v=$('#last5').value.trim();if(!/^\d{5}$/.test(v)){$('#last5').style.borderColor='var(--coral)';$('#last5').placeholder='請輸入 5 位數字';return}const t=S.trips.find(x=>x.id===S.tripBooking.id);t.taken++;S.tripBooking.done=true;S.tab='trip';render();
+  const pd=$('#paydone'); if(pd) pd.onclick=()=>{const v=$('#last5').value.trim();if(!/^\d{5}$/.test(v)){$('#last5').style.borderColor='var(--coral)';$('#last5').placeholder='請輸入 5 位數字';return}const t=S.trips.find(x=>x.id===S.tripBooking.id);t.taken++;S.tripBooking.done=true;S.queue.unshift({id:'qp'+Date.now(),type:'訂金對帳',em:'💰',who:'阿杜',what:t.t,time:'剛剛',pay:{amt:t.dep,last5:v}});S.tab='trip';render();
     openSheet(`<div class="ok-big"><div class="c">✓</div><h4>報名已送出</h4><p class="meta">名額已為你保留 48 小時<br>店家對帳後會 LINE 通知<br>並附上行程群組邀請連結</p></div><div class="card" style="background:var(--bg);margin-top:10px"><div class="meta">原本流程：私訊 IG → 外部表單 → 匯款 → 等待 → 進群組<br><b style="color:var(--ok)">現在：App 內 3 步完成，名額即時扣除</b></div></div><button class="btn block" onclick="closeSheet()">好的</button>`)};
   c.querySelectorAll('[data-qf]').forEach(b=>b.onclick=()=>{S.queueFilter=b.dataset.qf;render()});
-  c.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>{const q=S.queue.find(x=>x.id===b.dataset.approve);S.queue=S.queue.filter(x=>x!==q);render();toast('已核准，系統已 LINE 通知「'+q.who+'」。')});
+  c.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>{const q=S.queue.find(x=>x.id===b.dataset.approve);S.queue=S.queue.filter(x=>x!==q);render();toast(q.pay?'已確認入帳，系統已 LINE 通知「'+q.who+'」報名成功，並傳送行程群組邀請連結。':'已核准，系統已 LINE 通知「'+q.who+'」。')});
   c.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>rejectSheet(b.dataset.reject));
   const rm=$('#remind'); if(rm) rm.onclick=()=>{S.remindSent=true;render();toast('已發送 14 則邀請：「好久不見！這週六潛立方還有位置，要不要一起下水？」')};
   c.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{S.from=S.tab;S.sub=b.dataset.sub;render();c.scrollTop=0});
